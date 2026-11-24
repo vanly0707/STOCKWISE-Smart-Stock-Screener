@@ -4,7 +4,7 @@ Công cụ sàng lọc và xếp hạng cổ phiếu **HOSE** theo ba yếu tố
 
 > **Miễn trừ:** STOCKWISE là công cụ phân tích học thuật, không phải khuyến nghị đầu tư. Điểm số là xếp hạng tương đối, không dự báo lợi nhuận. Ứng dụng không đặt lệnh thật.
 >
-> **Nguồn dữ liệu:** Được giảng viên cho phép dùng SSI FastConnect API thay thế NEO API (ngày …/…/2026).
+> **Nguồn dữ liệu:** SSI FastConnect API 
 
 ## Kiến trúc
 
@@ -68,4 +68,4 @@ Với cửa sổ N phiên của **thị trường**:
 
 ## Kiểm thử
 
-Unit test cho cleaning, factors, scoring (gồm đối chiếu tính tay `tests/test_handcalc.py`), collector (client giả), dịch vụ dashboard và kiểm tra ngoài mẫu. Kết quả đối chiếu iBoard và thử lỗi mạng/khóa sai ghi tại `TEST_LOG.md`.
+Unit test cho cleaning, factors, scoring (gồm đối chiếu tính tay `tests/test_handcalc.py`), collector, dịch vụ dashboard và kiểm tra ngoài mẫu. Kết quả đối chiếu iBoard và thử lỗi mạng/khóa sai ghi tại `TEST_LOG.md`.

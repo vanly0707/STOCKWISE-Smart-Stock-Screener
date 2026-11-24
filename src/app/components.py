@@ -102,6 +102,34 @@ _CSS = """
   line-height: 1.4 !important;
   visibility: visible !important;
 }
+/* ---- Giao diện C: nền xám nhạt, sidebar tối, thẻ bo tròn */
+[data-testid="stAppViewContainer"]{background:#EEF2F6}
+[data-testid="stHeader"]{background:transparent}
+[data-testid="stSidebar"]{background:#0F172A;border-right:none}
+[data-testid="stSidebar"] h2,[data-testid="stSidebar"] h3,
+[data-testid="stSidebar"] label p,[data-testid="stSidebar"] [data-testid="stCaptionContainer"]{color:#E2E8F0 !important}
+.sw-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:.2rem 0 .8rem}
+.sw-head .t{font-size:1.65rem;font-weight:800;letter-spacing:-.02em;color:#0F172A;line-height:1.2}
+.sw-head .s{font-size:.85rem;color:#475569}
+.sw-pill{display:inline-block;padding:.28rem .85rem;border-radius:999px;font-size:.78rem;font-weight:700;margin:.4rem .4rem 0 0}
+.sw-pill.ok{background:#DCFCE7;color:#166534}.sw-pill.warn{background:#FEF3C7;color:#92400E}
+.sw-pill.err{background:#FEE2E2;color:#991B1B}.sw-pill.info{background:#E2E8F0;color:#334155;font-weight:600}
+.sw-pod .lbl{opacity:1;color:#475569}
+.sw-donut{display:flex;align-items:center;gap:1rem}
+.sw-donut .ring{width:84px;height:84px;border-radius:50%;display:grid;place-items:center;flex:none;
+  background:conic-gradient(#0F766E calc(var(--p)*1%),#E2E8F0 0)}
+.sw-donut .ring span{width:62px;height:62px;border-radius:50%;background:#fff;display:grid;place-items:center;font-weight:800;font-size:1.1rem;color:#0F172A}
+.sw-panel{border-radius:20px;padding:1.2rem 1.35rem;background:#fff;box-shadow:0 8px 24px rgba(15,23,42,.07)}
+.sw-panel h4{margin:0 0 .7rem;font-size:1rem;font-weight:700;padding:0;color:#0F172A}
+.sw-crow{display:flex;align-items:center;gap:.75rem;font-size:.82rem;margin-top:.4rem;color:#0F172A}
+.sw-crow b.s{width:46px}.sw-crow b.v{width:46px;text-align:right;color:#0F766E}
+.sw-cbar{flex:1;display:flex;height:22px;border-radius:6px;overflow:hidden;background:#F1F5F9}
+.sw-cbar i{display:block;height:100%}
+.sw-legend{display:flex;gap:1.1rem;margin-top:.9rem;font-size:.75rem;color:#475569}
+.sw-legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px}
+.sw-stack{display:flex;flex-direction:column;gap:1rem}
+.sw-card,.sw-card .val,.sw-card .sym{color:#0F172A}
+.sw-card .lbl,.sw-card .sub{color:#475569;opacity:1}
 </style>
 """
 
@@ -115,6 +143,58 @@ def tone_of(x: float) -> str:
 
 
 # ---------------------------------------------------------------- thẻ HTML
+def header(status: DataStatus, subtitle: str = "") -> None:
+    """Đầu trang: tiêu đề, dòng phụ và các nhãn trạng thái dữ liệu."""
+    pill = {"ok": ("ok", "Dữ liệu ổn định"), "warn": ("warn", "Dữ liệu cần chú ý")}.get(
+        status.level, ("err", "Chưa có dữ liệu"))
+    chips = [f'<span class="sw-pill {pill[0]}">{pill[1]}</span>']
+    if status.last_date:
+        chips.append(f'<span class="sw-pill info">HOSE · {status.n_sessions} phiên · đến {html.escape(status.last_date)}</span>')
+    if status.last_run_at:
+        chips.append('<span class="sw-pill info">Thu thập '
+                     + html.escape(status.last_run_at[:16].replace("T", " ")) + " (UTC+7)</span>")
+    st.markdown(
+        '<div class="sw-head"><div><div class="t">STOCKWISE · Xếp hạng cổ phiếu HOSE</div>'
+        f'<div class="s">{html.escape(subtitle or "Bộ lọc và xếp hạng theo động lượng, thanh khoản, khối ngoại")}</div>'
+        f'<div>{"".join(chips)}</div></div></div>', unsafe_allow_html=True)
+
+
+def top_row(rows: list[dict], met: dict, low_liquidity: int) -> None:
+    """Hàng đầu: ba thẻ top 3 và thẻ tỷ lệ mã đủ điều kiện (dạng vòng)."""
+    cols = st.columns(4)
+    for col, r, medal, color in zip(cols[:3], rows[:3], ("HẠNG 1", "HẠNG 2", "HẠNG 3"), RANK_COLORS):
+        col.markdown(
+            f'<div class="sw-card sw-pod" style="--c:{color}"><div class="lbl">{medal}</div>'
+            f'<div class="sym">{html.escape(r["symbol"])}</div>'
+            f'<div class="score">{r["score"]:.1f}<span> điểm</span></div>'
+            f'<div class="sub"><b class="{tone_of(r["momentum"])}">{r["momentum"] * 100:+.2f}%</b>'
+            f' · {r["avg_value"] / 1e9:,.1f} tỷ/phiên</div></div>', unsafe_allow_html=True)
+    cols[3].markdown(
+        f'<div class="sw-card sw-donut"><div class="ring" style="--p:{met["pct_eligible"]:.1f}">'
+        f'<span>{met["pct_eligible"]:.0f}%</span></div><div><div class="lbl">Mã đủ điều kiện</div>'
+        f'<div class="val">{met["n_eligible"]}<span style="font-size:.9rem;font-weight:500"> / {met["n_total"]}</span></div>'
+        f'<div class="sub">{low_liquidity} mã loại vì thanh khoản thấp</div></div></div>',
+        unsafe_allow_html=True)
+
+
+def contribution_panel(data: list[dict], title: str) -> None:
+    """Cột chồng bằng HTML: mỗi yếu tố đóng góp bao nhiêu điểm vào điểm tổng (độ rộng = điểm đóng góp)."""
+    out = []
+    for d in data:
+        segs = "".join(f'<i style="width:{d[label]:.2f}%;background:{COLORS[label]}" '
+                       f'title="{label}: {d[label]:.1f}"></i>' for label in FACTOR_LABELS.values())
+        total = sum(d[label] for label in FACTOR_LABELS.values())
+        out.append(f'<div class="sw-crow"><b class="s">{html.escape(d["Mã"])}</b>'
+                   f'<div class="sw-cbar">{segs}</div><b class="v">{total:.1f}</b></div>')
+    legend = "".join(f'<span><i style="background:{c}"></i>{k}</span>' for k, c in COLORS.items())
+    st.markdown(f'<div class="sw-panel"><h4>{html.escape(title)}</h4>{"".join(out)}'
+                f'<div class="sw-legend">{legend}</div></div>', unsafe_allow_html=True)
+
+
+def side_cards(cards: list[str]) -> None:
+    st.markdown('<div class="sw-stack">' + "".join(cards) + "</div>", unsafe_allow_html=True)
+
+
 def hero(status: DataStatus) -> None:
     dot = {"ok": "🟢 Dữ liệu ổn định", "warn": "🟡 Dữ liệu cần chú ý"}.get(status.level, "🔴 Chưa có dữ liệu")
     chips = [dot, "Phạm vi: HOSE", "Nguồn: SSI FastConnect (lưu SQLite)"]

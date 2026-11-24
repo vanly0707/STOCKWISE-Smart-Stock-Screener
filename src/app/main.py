@@ -112,8 +112,15 @@ except (OSError, KeyError, ValueError) as exc:
 db_file = _db_path(cfg)
 
 # ------------------------------------------------------------
+# Đầu trang: tiêu đề (điền sau khi biết trạng thái) và nút cập nhật
+title_col, btn_col = st.columns([5, 1.4], vertical_alignment="center")
+title_slot = title_col.empty()
+with btn_col:
+    update_clicked = st.button("Cập nhật dữ liệu từ SSI", type="primary")
+
+# ------------------------------------------------------------
 # Cập nhật dữ liệu từ SSI
-if st.button("🔄 Cập nhật dữ liệu từ SSI", type="primary"):
+if update_clicked:
 
     with st.spinner("Đang thu thập dữ liệu từ SSI... Vui lòng chờ."):
 
@@ -170,7 +177,8 @@ dates = services.available_dates(conn0)
 wmax_by_date = {d: services.max_window(conn0, d) for d in dates}
 conn0.close()
 
-components.hero(status)
+with title_slot.container():
+    components.header(status)
 components.status_banner(status)
 if status.level == "error":
     st.stop()
@@ -210,6 +218,10 @@ if w_err:
     st.error(w_err + " Hãy chỉnh lại các thanh trượt.")
     st.stop()
 
+with title_slot.container():
+    wlabel = "trọng số bằng nhau" if mode == "Bằng nhau" else f"trọng số {m:g}/{l:g}/{f:g}"
+    components.header(status, f"Phiên {as_of} · cửa sổ {window} phiên · {wlabel}")
+
 try:
     items, rep, rows = cached_ranking(DB, MT, as_of, window, min_value, weights)
 except ValueError as exc:
@@ -223,22 +235,24 @@ tab_rank, tab_detail, tab_sens, tab_method = st.tabs(
 with tab_rank:
     met = services.summary_metrics(items, rows)
     breadth = met["pct_positive_momentum"]
-    components.kpi_row([
-        components.kpi("Mã đủ điều kiện", f"{met['n_eligible']}/{met['n_total']}",
-                       f"{met['pct_eligible']:.0f}% số mã HOSE có dữ liệu", icon="✅"),
-        components.kpi("Độ rộng thị trường", f"{breadth:.0f}%",
-                       f"mã tăng giá trong {window} phiên", "up" if breadth >= 50 else "down", "📊"),
-        components.kpi("GT khớp TB của rổ", f"{met['avg_value_total_bn']:,.0f} tỷ", "mỗi phiên", icon="💰"),
-        components.kpi("Khối ngoại mua ròng", f"{met['net_foreign_bn']:+,.0f} tỷ",
-                       "mỗi phiên (rổ)", components.tone_of(met["net_foreign_bn"]), "🌐"),
-    ])
+    low_liq = services.reason_counts(items).get("Thanh khoản dưới ngưỡng", 0)
+    if len(rows) >= 3:
+        components.top_row(rows, met, low_liq)
     st.caption(f"Phạm vi: {', '.join(rep['boards'])} · ngày đánh giá {rep['as_of']} · "
                f"cửa sổ {rep['window_dates'][0]} → {rep['window_dates'][-1]} · "
                f"điểm trung vị {met['median_score']:.1f}")
-
-    if len(rows) >= 3:
-        components.section("Top 3", "Ba mã có điểm tổng hợp cao nhất tại ngày đánh giá")
-        components.podium(rows)
+    left, right = st.columns([1.7, 1])
+    with left:
+        components.contribution_panel(services.contributions(rows, weights, 8),
+                                      "Top 8: đóng góp của từng yếu tố vào điểm tổng")
+    with right:
+        components.side_cards([
+            components.kpi("Độ rộng thị trường", f"{breadth:.0f}%", f"mã tăng giá trong {window} phiên",
+                           "up" if breadth >= 50 else "down"),
+            components.kpi("Khối ngoại mua/bán ròng", f"{met['net_foreign_bn']:+,.0f} tỷ",
+                           "mỗi phiên, tổng rổ đủ điều kiện", components.tone_of(met["net_foreign_bn"])),
+            components.kpi("GT khớp TB của rổ", f"{met['avg_value_total_bn']:,.0f} tỷ", "mỗi phiên"),
+        ])
 
     components.section("Bảng xếp hạng", "Điểm 0–100 là thứ hạng tương đối trong rổ đủ điều kiện")
     f1, f2 = st.columns([2, 1])
@@ -261,12 +275,12 @@ with tab_rank:
         st.info("Không có mã nào khớp từ khóa tìm kiếm.")
 
     c1, c2 = st.columns(2)
-    c1.plotly_chart(components.contribution_bar(
-        services.contributions(rows, weights, 15), "Top 15: đóng góp của từng yếu tố"))
-    c2.plotly_chart(components.market_map(rows))
+    c1.plotly_chart(components.market_map(rows))
+    c2.plotly_chart(components.reason_donut(services.reason_counts(items)))
     c3, c4 = st.columns([3, 2])
     c3.plotly_chart(components.score_heatmap(rows, 20))
-    c4.plotly_chart(components.reason_donut(services.reason_counts(items)))
+    c4.plotly_chart(components.contribution_bar(
+        services.contributions(rows, weights, 10), "Top 10: đóng góp của từng yếu tố"))
 
     with st.expander(f"Mã bị loại khỏi xếp hạng ({met['n_total'] - met['n_eligible']}) và lý do"):
         st.write(services.reason_counts(items))
