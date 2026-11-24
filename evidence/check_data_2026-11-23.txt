@@ -1,0 +1,43 @@
+=== 1. TỔNG QUAN ===
+Mã có dữ liệu: 1381 | bản ghi: 37850 | số phiên: 43 | từ 2026-09-23 đến 2026-11-20
+  trạng thái empty: 176 mã
+  trạng thái ok: 1381 mã
+
+=== 2. THEO SÀN (số mã trong danh sách / số mã có dữ liệu) ===
+  UPCOM: 844 / 685
+  HOSE: 412 / 409
+  HNX: 301 / 287
+
+=== 3. MÃ KHÔNG CÓ DỮ LIỆU (mẫu 15 mã) ===
+  ATP (HOSE)
+  LGC (HOSE)
+  TTE (HOSE)
+
+=== 4. MÃ KHÔNG NẰM TRONG LƯỢT CẬP NHẬT DANH SÁCH GẦN NHẤT ===
+  (nên chạy sau lượt thu thập toàn thị trường; mã ở đây có thể bị bộ lọc cổ phiếu loại nhầm)
+  (không có)
+
+=== 5. SỐ PHIÊN CÓ DỮ LIỆU MỖI MÃ ===
+  ≥ 40 phiên: 315 mã
+  6–39 phiên: 91 mã
+  < 6 phiên (không đủ tính momentum): 3 mã
+
+=== 6. DỮ LIỆU KHỐI NGOẠI THEO SÀN (tỷ lệ bản ghi có giao dịch khối ngoại) ===
+  HNX: 23.2% (1947/8386)
+  HOSE: 62.1% (9898/15945)
+  UPCOM: 8.3% (1127/13519)
+
+=== 7. PHIÊN KHÔNG KHỚP LỆNH (total_match = 0 hoặc rỗng) ===
+  0/37850 bản ghi (0.0%)
+
+=== 8. GIÁ TRỊ KHỚP BÌNH QUÂN 5 PHIÊN GẦN NHẤT (tỷ đồng/phiên) ===
+  Sàn     Số mã    P10     P25     P50     P75     P90
+  HNX       269   0.004   0.012   0.067   0.369   2.185
+  HOSE      407   0.014   0.084   0.681  10.899  68.298
+  UPCOM     565   0.002   0.006   0.020   0.091   0.728
+  Toàn thị trường: P10=0.003 P20=0.008 P25=0.011 P50=0.059
+
+=== 9. TỶ TRỌNG GIÁ TRỊ KHỚP THEO SÀN (5 phiên gần nhất) ===
+  HOSE: 49,231 tỷ đồng (91.6%) | 403 mã
+  HNX: 2,858 tỷ đồng (5.3%) | 239 mã
+  UPCOM: 1,656 tỷ đồng (3.1%) | 510 mã

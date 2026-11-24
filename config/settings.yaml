@@ -1,0 +1,21 @@
+# Cấu hình STOCKWISE
+universe:
+  mode: all              # all = toàn bộ cổ phiếu của các sàn trong `boards` | index = theo một chỉ số
+  index: VN100           # chỉ dùng khi mode = index (hoặc tham số --index khi chạy)
+  boards: [HOSE]             # sàn cần thu thập
+  include_indexes: [VN100]   # bổ sung mã của chỉ số mà danh sách theo sàn có thể thiếu
+
+collect:
+  db_path: data/stockwise.db
+  backfill_days: 365      # số ngày lịch lấy lùi cho mã chưa có dữ liệu 
+  overlap_days: 7        # lấy chồng lên dữ liệu cũ để bắt các điều chỉnh muộn
+  min_interval: 0.3      # giây giữa hai request (khoảng 3 request/giây)
+  max_consecutive_errors: 10
+
+scoring:
+  window: 5                  # số phiên cho momentum / thanh khoản / dòng tiền ngoại
+  min_avg_value: 500000000  # giá trị khớp bình quân tối thiểu (đồng/phiên) để được xếp hạng
+  min_traded_sessions: 4     # phải có giao dịch ít nhất 4/5 phiên trong cửa sổ
+  max_daily_move: 0.075     # biên độ ngày tối đa cộng dung sai; vượt = nghi điều chỉnh giá
+  exclude_price_jumps: true
+  boards: [HOSE]             # sàn được xếp hạng; xóa dòng này để xếp hạng mọi sàn có dữ liệu

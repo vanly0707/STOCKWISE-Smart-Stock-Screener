@@ -221,3 +221,29 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# STOCKWISE - Local environment
+.env
+.env.*
+
+# Keep example environment file
+!.env.example
+
+# Local database
+data/*.db
+data/**/*.db
+data/*.sqlite
+data/**/*.sqlite
+
+# Raw and processed market data
+data/raw/*
+data/processed/*
+
+# Logs
+logs/
+*.log
+
+.token_cache.json
+
+data/*.db-wal
+data/*.db-shm
